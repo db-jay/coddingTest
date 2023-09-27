@@ -11,4 +11,4 @@ const solution = (sides) => {
   return (max + min) - (max - min) - 1
 }
 
-console.log(solution([11, 7])); ㅎ
+console.log(solution([11, 7]));
