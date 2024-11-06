@@ -1,0 +1,80 @@
+name: Sync Programmers Solutions
+
+on:
+  push:
+    paths:
+      - '프로그래머스/**'
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository (coddingTest)
+        uses: actions/checkout@v4
+        with:
+          path: coddingTest
+          ref: main
+          fetch-depth: 0  # 전체 히스토리 가져오기
+
+      - name: Checkout target repository (AlgorithmStudy)
+        uses: actions/checkout@v4
+        with:
+          repository: Gwangju-Web-Study/AlgorithmStudy
+          path: algorithm-study
+          token: ${{ secrets.PAT_TOKEN }}
+          ref: main
+
+      - name: Sync changes
+        run: |
+          cd coddingTest
+          
+          # 가장 최근 커밋 메시지 확인
+          COMMIT_MSG=$(git log -1 --pretty=format:%s)
+          echo "Commit message: $COMMIT_MSG"
+          
+          # 프로그래머스 폴더 내 모든 파일 찾기
+          PROG_FILES=$(find 프로그래머스 -type f)
+          echo "Found files: $PROG_FILES"
+          
+          if [ -n "$PROG_FILES" ]; then
+            if [[ $COMMIT_MSG =~ \[level\ ([0-9]+)\]\ Title:\ ([^,]+) ]]; then
+              LEVEL=${BASH_REMATCH[1]}
+              TITLE=${BASH_REMATCH[2]}
+              NEW_COMMIT_MSG="[PGS] ${TITLE} / lv${LEVEL}"
+              echo "Extracted - Level: $LEVEL, Title: $TITLE"
+            else
+              NEW_COMMIT_MSG="[PGS] 문제 동기화"
+            fi
+            
+            while IFS= read -r file; do
+              if [ -f "$file" ]; then
+                echo "Processing file: $file"
+                PROBLEM_DIR=$(basename "$(dirname "$file")")
+                TITLE_ONLY=$(echo "$PROBLEM_DIR" | sed -E 's/^[0-9]+\.\s*//')
+                TARGET_PATH="../algorithm-study/신애/${TITLE_ONLY}"
+                
+                mkdir -p "$TARGET_PATH"
+                cp "$file" "$TARGET_PATH/"
+                echo "File copied: $TARGET_PATH/$(basename "$file")"
+              fi
+            done <<< "$PROG_FILES"
+            
+            cd ../algorithm-study
+            git config user.name "GitHub Actions Bot"
+            git config user.email "actions@github.com"
+            
+            git add .
+            git commit -m "$NEW_COMMIT_MSG" -m "🕐 동기화 시간: $(TZ='Asia/Seoul' date +'%Y-%m-%d %H:%M:%S KST')"
+            git push
+            
+            echo "✅ 동기화가 완료되었습니다."
+          else
+            echo "⏭️ 프로그래머스 폴더가 비어있습니다."
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf coddingTest algorithm-study
