@@ -11,10 +11,12 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source repository (PROGRAMMERS-LV0)
+      - name: Checkout source repository (coddingTest)
+)
         uses: actions/checkout@v4
         with:
-          path: PROGRAMMERS-LV0
+          path: coddingTest
+
           ref: main
           fetch-depth: 0 # 전체 히스토리 가져오기
 
@@ -28,7 +30,8 @@ jobs:
 
       - name: Sync changes
         run: |
-          cd PROGRAMMERS-LV0
+          cd coddingTest
+
 
           # 가장 최근 커밋 메시지 확인
           COMMIT_MSG=$(git log -1 --pretty=format:%s)
@@ -77,4 +80,4 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          rm -rf PROGRAMMERS-LV0 algorithm-study
+          rm -rf coddingTest algorithm-study
