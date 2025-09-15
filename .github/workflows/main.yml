@@ -11,10 +11,10 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source repository (coddingTest)
+      - name: Checkout source repository (coding-test)
         uses: actions/checkout@v4
         with:
-          path: coddingTest
+          path: coding-test
           ref: main
           fetch-depth: 0  # 전체 히스토리 가져오기
 
@@ -23,12 +23,12 @@ jobs:
         with:
           repository: Gwangju-Web-Study/AlgorithmStudy
           path: algorithm-study
-          token: ${{ secrets.MY_NEW_PAT }}
+          token: ${{ secrets.PAT_TOKEN }}
           ref: main
 
       - name: Sync changes
         run: |
-          cd coddingTest
+          cd coding-test
           
           # 가장 최근 커밋 메시지 확인
           COMMIT_MSG=$(git log -1 --pretty=format:%s)
@@ -73,7 +73,8 @@ jobs:
           else
             echo "⏭️ 프로그래머스 폴더가 비어있습니다."
           fi
+
       - name: Cleanup
         if: always()
         run: |
-          rm -rf coddingTest algorithm-study
+          rm -rf coding-test algorithm-study
